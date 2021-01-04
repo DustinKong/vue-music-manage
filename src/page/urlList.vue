@@ -35,7 +35,7 @@
                         <el-button
                             size="mini"
                             type="success"
-                            @click="addLink(scope.$index, scope.row)">增加子项
+                            @click="addLinkIni(scope.$index, scope.row)">增加子项
                         </el-button>
                         <el-button
                             size="mini"
@@ -67,16 +67,21 @@
                     prop="name">
                 </el-table-column>
                 <el-table-column
-                    label="链接"
+                    label="链接(可点击跳转)"
                     align="center"
                     prop="link">
                 </el-table-column>
-                <el-table-column label="操作" align="center" width="200">
+                <el-table-column label="操作" align="center" width="300">
                     <template slot-scope="scope">
                         <el-button
                             size="mini"
                             type="info"
                             @click="GetThird(scope.$index, scope.row)">下一层
+                        </el-button>
+                        <el-button
+                            size="mini"
+                            type="success"
+                            @click="addLinkIni(scope.$index, scope.row)">增加子项
                         </el-button>
                         <el-button
                             size="mini"
@@ -108,9 +113,13 @@
                     prop="name">
                 </el-table-column>
                 <el-table-column
-                    label="链接"
+                    label="链接(可点击跳转)"
                     align="center"
-                    prop="link">
+                    prop="link"
+                >
+                <template slot-scope="scope">
+                    <a :href="scope.row.link" target="_blank" style="text-decoration:none;">{{scope.row.link}}</a>
+                </template>
                 </el-table-column>
                 <el-table-column label="操作" align="center" width="200">
                     <template slot-scope="scope">
@@ -128,7 +137,7 @@
                 </el-table-column>
             </el-table>
             <div style="padding: 10px;text-align:center">
-            <el-button type="primary" @click="addFirstIni">增加首页主项</el-button>
+            <el-button type="primary" @click="addFirstIni" v-if="nowType===0">增加首页主项</el-button>
             </div>
             <el-dialog title="增加首页主项" v-model="dialogAddFirst" v-loading="loading" element-loading-text="加载中">
                 <el-form :model="selectTable">
@@ -143,6 +152,21 @@
                 <div slot="footer" class="dialog-footer">
                     <el-button @click="dialogAddFirst = false">取 消</el-button>
                     <el-button type="primary" @click="addFirst">确 定</el-button>
+                </div>
+            </el-dialog>
+            <el-dialog title="增加子项" v-model="dialogSon" v-loading="loading" element-loading-text="加载中">
+                <el-form :model="selectTable">
+                    <el-form-item label="名称" label-width="100px">
+                        <el-input v-model="selectTable.name" ></el-input>
+                    </el-form-item>
+                    <p style="padding: 5px;text-align: center;color: red">如该项有下一层 请将链接置空 否则手机端点击后将直接进入链接</p>
+                    <el-form-item label="链接" label-width="100px">
+                        <el-input v-model="selectTable.link" ></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="dialogSon = false">取 消</el-button>
+                    <el-button type="primary" @click="addLinkSon">确 定</el-button>
                 </div>
             </el-dialog>
             <el-dialog title="修改信息" v-model="dialogFormVisible" v-loading="loading" element-loading-text="加载中">
@@ -163,12 +187,13 @@
 
             <el-dialog
                 title="提示"
-                :visible.sync="dialogVisible"
+                style="font-size: 25px"
+                :visible.sync="dialogVisibleDel"
                 width="30%">
-                <span>确认删除此老师</span>
+                <span style="color: red;font-size: 25px">请确认是否删除此项 此项的子项也将一起删除！</span>
                 <span slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="confirm">确 定</el-button>
+                <el-button @click="dialogVisibleDel = false">取 消</el-button>
+                <el-button type="primary" @click="confirmDel">确 定</el-button>
               </span>
             </el-dialog>
         </div>
@@ -178,7 +203,7 @@
 <script>
     import headTop from '../components/headTop'
     import {baseUrl, baseImgPath} from '@/config/env'
-    import {getFirstType,getSecondType,addLink,updateLink,deleteLink,getTeacher, updateTeacher,deleteTeacher} from '@/api/getData'
+    import {getFirstType,getSecondType,addLink,updateLink,deleteLink} from '@/api/getData'
     import {mapActions, mapState} from 'vuex'
     const token = localStorage.getItem('Authorization');
     export default {
@@ -188,8 +213,9 @@
                 myHeaders: {'Token': token},
                 nowTitle:'浙江音乐学院系统',
                 nowType:0, // 当前目录级别
-                dialogVisible: false,
+                dialogVisibleDel: false,
                 dialogAddFirst: false,
+                dialogSon: false,
                 finishLoading: true,
                 loading: false,
                 baseUrl,
@@ -227,14 +253,14 @@
                     console.log('获取数据失败', err);
                 }
             },
-            async confirm() {
-                this.dialogVisible=false;
+            async confirmDel() {
+                this.dialogVisibleDel=false;
                 try {
-                    const res = await deleteTeacher({id:this.deleteId});
+                    const res = await deleteLink({id:this.deleteId});
                     if (res.code === 200) {
                         this.$message({
                             type: 'success',
-                            message: '删除老师成功'
+                            message: '删除成功'
                         });
                         this.initData();
                         console.log(res.data)
@@ -304,31 +330,8 @@
                     console.log('获取数据失败', err);
                 }
             },
-            async addLink(index, row) {
-                try {
-                    const res = await addLink(row.id);
-                    if (res.code === 200) {
-                        // this.count = countData.count;
-                        this.urlInfoThird = res.data;
-                        this.lastTitle =  this.nowTitle;
-                        this.nowTitle=name;
-                        this.nowType=2;
-                        console.log(res.data)
-                    }
-                    else if(res.code===13){
-                        this.$message({
-                            type: 'error',
-                            message: '暂无该项'
-                        });
-                    }else {
-                        throw new Error('获取数据失败');
-                    }
-                    // this.getFoods();
-                } catch (err) {
-                    console.log('获取数据失败', err);
-                }
-            },
-            async addFirst() {
+            async addLinkSon(index, row) {
+                this.dialogSon=false;
                 try {
                     console.log(this.selectTable);
                     const res = await addLink(this.selectTable);
@@ -337,7 +340,34 @@
                             type: 'success',
                             message: '添加成功'
                         });
-                        this.dialogAddFirst=false;
+                        // this.initData();
+                        console.log(res.data)
+                    }
+                    else {
+                        this.$message({
+                            type: 'error',
+                            message: '未知错误，请联系管理员'
+                        });
+                    }
+                    // this.getFoods();
+                } catch (err) {
+                    console.log('获取数据失败', err);
+                }
+            },
+            addLinkIni(index, row) {
+                this.selectTable = {'parent':row.id,"link":"","name":""};
+                this.dialogSon = true;
+            },
+            async addFirst() {
+                this.dialogAddFirst=false;
+                try {
+                    console.log(this.selectTable);
+                    const res = await addLink(this.selectTable);
+                    if (res.code === 200) {
+                        this.$message({
+                            type: 'success',
+                            message: '添加成功'
+                        });
                         this.initData();
                         console.log(res.data)
                     }
@@ -352,21 +382,17 @@
                     console.log('获取数据失败', err);
                 }
             },
-            addFirstIni(index, row) {
+            addFirstIni() {
                 this.selectTable = {'parent':'0',"link":"","name":""};
                 this.dialogAddFirst = true;
             },
             handleEdit(index, row) {
                 this.selectTable = row;
-                this.address.address = row.address;
                 this.dialogFormVisible = true;
-                // if (!this.categoryOptions.length) {
-                //     this.getCategory();
-                // }
             },
 
             handleDelete(index, row) {
-                this.dialogVisible = true;
+                this.dialogVisibleDel = true;
                 this.deleteId = row.id;
             },
             handleServiceAvatarScucess(res, file) {
@@ -397,10 +423,8 @@
             async update() {
                 this.dialogFormVisible = false;
                 try {
-
                     console.log('submit', this.selectTable);
-
-                    const res = await updateTeacher(this.selectTable);
+                    const res = await updateLink(this.selectTable);
                     if (res.code === 200) {
                         this.$message({
                             type: 'success',
