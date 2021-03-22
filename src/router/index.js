@@ -102,20 +102,22 @@ const router = new Router({
 // 使用 router.beforeEach 注册一个全局前置守卫，判断用户是否登陆
 
 router.beforeEach((to, from, next) => {
-    if (to.path === '/login') {
-        console.log('login');
-        next();
-    } else {
-        let token = localStorage.getItem('Authorization');
-
-        if (token === null || token === '') {
-            console.log('no token');
-            alert('用户未登录');
-            next('/login');
-        } else {
-            next();
-        }
-    }
+    // if (to.path === '/login') {
+    //     console.log('login');
+    //     next();
+    // } else {
+    //     // let token = localStorage.getItem('Authorization');
+    //     //
+    //     // if (token === null || token === '') {
+    //     //     console.log('no token');
+    //     //     alert('用户未登录');
+    //     //     next('/login');
+    //     // } else {
+    //     //     next();
+    //     // }
+    //     next();
+    // }
+    next();
 });
 
 // router.beforeEach((to, from, next) => {
