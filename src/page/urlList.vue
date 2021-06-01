@@ -25,6 +25,12 @@
                     align="center"
                     prop="link">
                 </el-table-column>
+                <el-table-column
+                    label="时间"
+                    align="center"
+                    prop="time">
+                    <template slot-scope="scope">{{scope.row.time| dateYMDHMSFormat}}</template>
+                </el-table-column>
                 <el-table-column label="操作" align="center" width="300">
                     <template slot-scope="scope">
                         <el-button
@@ -70,6 +76,12 @@
                     label="链接(可点击跳转)"
                     align="center"
                     prop="link">
+                </el-table-column>
+                <el-table-column
+                    label="时间"
+                    align="center"
+                    prop="time">
+                    <template slot-scope="scope">{{scope.row.time| dateYMDHMSFormat}}</template>
                 </el-table-column>
                 <el-table-column label="操作" align="center" width="300">
                     <template slot-scope="scope">
@@ -121,6 +133,12 @@
                     <a :href="scope.row.link" target="_blank" style="text-decoration:none;">{{scope.row.link}}</a>
                 </template>
                 </el-table-column>
+                <el-table-column
+                    label="时间"
+                    align="center"
+                    prop="time">
+                    <template slot-scope="scope">{{scope.row.time| dateYMDHMSFormat}}</template>
+                </el-table-column>
                 <el-table-column label="操作" align="center" width="200">
                     <template slot-scope="scope">
                         <el-button
@@ -148,6 +166,16 @@
                     <el-form-item label="链接" label-width="100px">
                         <el-input v-model="selectTable.link" ></el-input>
                     </el-form-item>
+                    <p style="padding: 5px;text-align: center;color: red">时间必填</p>
+                    <el-form-item label="时间" label-width="100px">
+                            <el-date-picker
+                                v-model="selectTable.time"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy 年 MM 月 dd 日"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                    </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click="dialogAddFirst = false">取 消</el-button>
@@ -162,6 +190,16 @@
                     <p style="padding: 5px;text-align: center;color: red">如该项有下一层 请将链接置空 否则手机端点击后将直接进入链接</p>
                     <el-form-item label="链接" label-width="100px">
                         <el-input v-model="selectTable.link" ></el-input>
+                    </el-form-item>
+                    <p style="padding: 5px;text-align: center;color: red">时间必填</p>
+                    <el-form-item label="时间" label-width="100px">
+                        <el-date-picker
+                            v-model="selectTable.time"
+                            type="date"
+                            placeholder="选择日期"
+                            format="yyyy 年 MM 月 dd 日"
+                            value-format="yyyy-MM-dd">
+                        </el-date-picker>
                     </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -178,13 +216,21 @@
                     <el-form-item label="链接" label-width="100px">
                         <el-input v-model="selectTable.link" ></el-input>
                     </el-form-item>
+                    <p style="padding: 5px;text-align: center;color: red">时间必填</p>
+                    <el-form-item label="时间" label-width="100px">
+                        <el-date-picker
+                            v-model="selectTable.time"
+                            type="date"
+                            placeholder="选择日期">
+                        </el-date-picker>
+                    </el-form-item>
                 </el-form>
+
                 <div slot="footer" class="dialog-footer">
                     <el-button @click="dialogFormVisible = false">取 消</el-button>
                     <el-button type="primary" @click="update">确 定</el-button>
                 </div>
             </el-dialog>
-
             <el-dialog
                 title="提示"
                 style="font-size: 25px"
@@ -205,6 +251,7 @@
     import {baseUrl, baseImgPath} from '@/config/env'
     import {getFirstType,getSecondType,addLink,updateLink,deleteLink} from '@/api/getData'
     import {mapActions, mapState} from 'vuex'
+    import moment from 'moment'
     const token = localStorage.getItem('Authorization');
     export default {
         data() {
@@ -223,13 +270,15 @@
                 urlInfoTwo: [],
                 urlInfoThird: [],
                 dialogFormVisible: false,
-                selectTable: {},
+                selectTable: {
+                    time:''
+                },
                 categoryOptions: [],
                 selectedCategory: [],
                 address: {},
-
             }
         },
+
         created() {
             this.initData();
         },
@@ -333,6 +382,7 @@
             async addLinkSon(index, row) {
                 this.dialogSon=false;
                 try {
+                    this.selectTable.time=moment(this.selectTable.time).format("YYYY-MM-DD HH:mm:ss");
                     console.log(this.selectTable);
                     const res = await addLink(this.selectTable);
                     if (res.code === 200) {
@@ -340,6 +390,7 @@
                             type: 'success',
                             message: '添加成功'
                         });
+                        this.selectTable={};
                         // this.initData();
                         console.log(res.data)
                     }
@@ -361,6 +412,7 @@
             async addFirst() {
                 this.dialogAddFirst=false;
                 try {
+                    this.selectTable.time=moment(this.selectTable.time).format("YYYY-MM-DD HH:mm:ss");
                     console.log(this.selectTable);
                     const res = await addLink(this.selectTable);
                     if (res.code === 200) {
@@ -368,6 +420,7 @@
                             type: 'success',
                             message: '添加成功'
                         });
+                        this.selectTable={};
                         this.initData();
                         console.log(res.data)
                     }
@@ -377,7 +430,6 @@
                             message: '未知错误，请联系管理员'
                         });
                     }
-                    // this.getFoods();
                 } catch (err) {
                     console.log('获取数据失败', err);
                 }
@@ -388,6 +440,9 @@
             },
             handleEdit(index, row) {
                 this.selectTable = row;
+                this.selectTable.time=moment(this.selectTable.time).format("YYYY-MM-DD HH:mm:ss");
+                // this.selectTable.time="";
+                console.log(row);
                 this.dialogFormVisible = true;
             },
 
@@ -423,6 +478,7 @@
             async update() {
                 this.dialogFormVisible = false;
                 try {
+                    this.selectTable.time=moment(this.selectTable.time).format("YYYY-MM-DD HH:mm:ss");
                     console.log('submit', this.selectTable);
                     const res = await updateLink(this.selectTable);
                     if (res.code === 200) {

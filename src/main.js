@@ -11,7 +11,7 @@ Vue.use(VueDirectiveImagePreviewer);
 Vue.use(require('vue-moment'));
 Vue.prototype.moment = moment;
 
-Vue.filter('dateYMDHMSFormat',function(dateStr,pattern='YYYY-MM-DD HH:mm:ss'){
+Vue.filter('dateYMDHMSFormat',function(dateStr,pattern='YYYY-MM-DD'){
     return moment(dateStr).format(pattern);
 });
 Vue.config.productionTip = false;

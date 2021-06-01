@@ -11,18 +11,19 @@ let routerMode = 'hash';
 let baseImgPath;
 
 if (process.env.NODE_ENV === 'development') {
-	// baseUrl = '';
-	// baseUrl = 'http://127.0.0.1:5001';
-	baseUrl = 'http://118.25.71.143:5001';
-	// baseUrl = 'http://qituant.cn:8081';
+    baseUrl = '/api';
+    // baseUrl = 'http://118.25.71.143:5001';
+    // baseUrl = 'http://127.0.0.1:5001';
+    // baseUrl = 'http://qituant.cn:8081';
     // baseImgPath = '/img/';
 }else{
-    //baseUrl = 'http://qituant.cn:8081';
-    baseUrl = 'http://118.25.71.143:5001';
+    baseUrl = '/api';
+    // baseUrl = 'http://118.25.71.143:5001';
     // baseUrl = 'http://127.0.0.1:5001';
     // baseUrl = 'http://212.64.40.135:8081';
     baseImgPath = 'http://qituant.cn:8081';
 }
+
 
 export {
 	baseUrl,
